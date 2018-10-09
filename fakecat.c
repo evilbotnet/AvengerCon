@@ -1,53 +1,48 @@
-#include<stdio.h>
-#include<unistd.h>
-#include<sys/types.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <time.h>
 
-char *pick(void) {
+#define CAT "/bin/cat"
 
-    const char* words[4];
-    words[0] = "meow\n";
-    words[1] = "I cAn HaZ Tr3aT?\n";
-    words[2] = "try -treat\n";
-    words[3] = "Cats need treats.\n";
+const char *hints[] = {
+    "meow",
+    "I cAn HaZ Tr3aT?",
+    "try -treat",
+    "Cats need treats."
+};
 
-    static char* random; 
-    srand(time(NULL));
-    random = words[rand() % 3];
-    //printf(random); // 4
-    return random;
-}
+// add as many hints as you want without updating.
+#define RANDOM_HINT hints[rand() % (sizeof(hints) / sizeof(*hints))]
 
 int main(int argc, char *argv[])
 {
-char treat[] = "-treat";
-if( argc == 3 ) {
-	if (!strcmp(argv[2], "-treat")){
-		printf("Mmmmm\n");
-		char buf[32];
-		sprintf(buf, "/bin/cat %s", argv[1]);
-		system(buf);
+    srand(time(NULL));
 
- 	}
-	else {
-		printf(pick());
-	}
-	//char buf[32];
-	//sprintf(buf, "/bin/cat %s", argv[1]);
-      //printf("The argument supplied is %s\n", argv[1]);
-	//system(buf);
+    // handle the case with no arguments, lets just pretend to be
+    // cat
+    if (argc == 1) {
+        execve(CAT, argv, NULL);
+    }
 
-   }
-   else if( argc == 2 ) {
-      printf(pick());
-   }
-   else if( argc > 3 ){
-      printf("wut\n");
-   }
-   else {
-      //printf("One argument expected.\n");
-	system("/bin/cat");
-   }
+    // check whether the -treat option was passed
+    for (int i = 1; i < argc; i++) {
+        if (!strcmp("-treat", argv[i])) {
+            // found treat option, pass all the arguments to the real cat
+            // program, except for -treat
 
-//	setuid(geteuid());
-	return 0;
+            // remove the "-treat" option from the argument list
+            for (int j = i; j < argc; j++) {
+                argv[j] = argv[j + 1];
+            }
+
+            // execute the real cat
+            execve(CAT, argv, NULL);
+        } else {
+            puts(RANDOM_HINT);
+        }
+    }
+
+    exit(EXIT_FAILURE);
 }
